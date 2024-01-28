@@ -1,5 +1,5 @@
 export const makeOrigin = (ip, port = '', protocol = 'https') => 
-    ({ip, port, protocol});
+    ({ip, port: `${port}`, protocol});
 
 export const fmtOrigin = ({ip, port, protocol}) => 
     `${protocol}://${ip}${port ? `:${port}` : ''}`;
@@ -26,16 +26,11 @@ export const fmtBody = (origin, pathname, body) => {
     }, {});
 };
 
-export const dereq = (address, requests) => {
-    return Object.fromEntries(requests.reduce((acc, [pathname, body]) => {
-        if(pathname.length === 0) {
-            return [
-                ...acc,
-                Object.entries(fmtBody(address, pathname, body))
-            ];
-        } else {
-            return acc
-        }
-    }
-    , []));
+export const dereq = ({origin, endpoints}) => {
+    return Object.fromEntries(endpoints.map(({name, path, requests}) => {
+        return [
+            name,
+            fmtBody(origin, path, requests)
+        ]
+    }))
 };
