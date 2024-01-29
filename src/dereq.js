@@ -26,11 +26,11 @@ export const fmtBody = (origin, pathname, body) => {
     }, {});
 };
 
-export const dereq = ({origin, endpoints}) => {
-    return Object.fromEntries(Object.entries(endpoints).map(([name, {path, requests}]) => {
-        return [
+export const dereq = ({origin, endpoints}) => 
+    Object.fromEntries(
+        Object.entries(endpoints).map(([name, [path, requests]]) =>
+        [
             name,
             fmtBody(origin, path, requests)
         ]
-    }))
-};
+));

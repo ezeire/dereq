@@ -132,14 +132,14 @@ describe('dereq function:', () => {
         expect(dereq({
             origin: makeOrigin('jsonplaceholder.typicode.com'),
             endpoints: {
-                users: {
-                    path: [],
-                    requests: {
+                users: [
+                    [],
+                    {
                         get: {
                             posts: 'posts'
                         }
                     }
-                }
+                ]
             }
         })).toEqual({
             users: {
@@ -154,14 +154,14 @@ describe('dereq function:', () => {
         expect(dereq({
             origin: makeOrigin('jsonplaceholder.typicode.com'),
             endpoints: {
-                users: {
-                    path: ['users', 'posts'],
-                    requests: {
+                users: [
+                    ['users', 'posts'],
+                    {
                         get: {
                             posts: 'posts'
                         }
                     }
-                }
+                ]
             }
         })).toEqual({
             users: {
@@ -176,22 +176,22 @@ describe('dereq function:', () => {
         expect(dereq({
             origin: makeOrigin('jsonplaceholder.typicode.com'),
             endpoints: {
-                users: {
-                    path: ['users', 'posts'],
-                    requests: {
+                users: [
+                    ['users', 'posts'],
+                    {
                         get: {
                             posts: 'posts'
                         }
                     }
-                },
-                posts: {
-                    path: ['posts'],
-                    requests: {
+                ],
+                posts: [
+                    ['posts'],
+                    {
                         get: {
                             comments: 'comments'
                         }
                     }
-                }
+                ]
             }
         })).toEqual({
             users: {
@@ -211,14 +211,14 @@ describe('dereq function:', () => {
         const _ = dereq({
             origin: makeOrigin('jsonplaceholder.typicode.com'),
             endpoints: {
-                users: {
-                    path: ['users'],
-                    requests: {
+                users: [
+                    ['users'],
+                    {
                         get: {
                             posts: (count) => `posts/${count}`
                         }
                     }
-                }
+                ]
             }
         });
 
