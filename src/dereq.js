@@ -16,6 +16,8 @@ export const fmtBody = (origin, pathname, body) => {
 
         if(typeof value === 'string') {
             acc[key] = fmtURL(origin, pathname, value);
+        } else if(Array.isArray(value)) {
+            acc[key] = fmtURL(origin, pathname, value.join('/'));
         } else if(typeof value === 'function') {
             acc[key] = (...params) => fmtURL(origin, pathname, value(...params));
         } else if(typeof value === 'object') {

@@ -225,4 +225,26 @@ describe('dereq function:', () => {
         expect(_.users.get.posts(20))
             .toBe('https://jsonplaceholder.typicode.com/users/posts/20');
     });
+
+    test('create with params', () => {
+        expect(dereq({
+            origin: makeOrigin('jsonplaceholder.typicode.com'),
+            endpoints: {
+                users: [
+                    ['users'],
+                    {
+                        get: {
+                            posts: ['posts', '?limit=']
+                        }
+                    }
+                ]
+            }
+        })).toEqual({
+            users: {
+                get: {
+                    posts: 'https://jsonplaceholder.typicode.com/users/posts/?limit='
+                }
+            }
+        })
+    });
 });
