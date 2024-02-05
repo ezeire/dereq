@@ -1,250 +1,64 @@
-import { dereq, makeOrigin, fmtPathName, fmtURL, fmtBody } from "../src/dereq";
+import { dereq } from '../src/dereq.js';
 
-describe('makeOrigin function:', () => {
-    test('create with ip', () => {
-        const server = makeOrigin('localhost');
-        expect(server)
-            .toEqual({ip: 'localhost', port: '', protocol: 'https'});
+describe('dereq testing', () => { 
+    test('create with valid host', () => {
+        const requests = dereq('10.16.0.140').end();
+        expect(requests).toEqual({});
     });
 
-    test('create with ip and port', () => {
-        const server = makeOrigin('localhost', 3000);
-        expect(server)
-            .toEqual({ip: 'localhost', port: '3000', protocol: 'https'});
+    test('create with dns host', () => {
+        const requests = dereq('google.com').end();
+        expect(requests).toEqual({});
     });
 
-    test('create with ip, port and protocol', () => {
-        const server = makeOrigin('localhost', '5000', 'http');
-        expect(server)
-            .toEqual({ip: 'localhost', port: '5000', protocol: 'http'});
-    });
-});
-
-describe('fmtPathName function:', () => {
-    test('create with empty pathname', () => {
-        expect(fmtPathName([]))
-            .toBe('/');
+    test('create with invalid host', () => {        
+        expect(() => dereq('10.1116.0.140', 5002, 'http').end()).toThrow(TypeError);
     });
 
-    test('create with single pathname', () => {
-        expect(fmtPathName(['users']))
-            .toBe('/users/');
-    });
-
-    test('create with multiple pathname', () => {
-        expect(fmtPathName(['users', 'posts']))
-            .toBe('/users/posts/');
-    });
-});
-
-describe('fmtURL function:', () => {
-    const _ = makeOrigin('jsonplaceholder.typicode.com');
-    test('create with empty pathname', () => {
-        expect(fmtURL(_, [], 'posts'))
-            .toBe('https://jsonplaceholder.typicode.com/posts');
-    });
-
-    test('create with single pathname', () => {
-        expect(fmtURL(_, ['users'], 'posts'))
-            .toBe('https://jsonplaceholder.typicode.com/users/posts');
-    });
-    
-    test('create with multiple pathname', () => {
-        expect(fmtURL(_, ['users', 'posts'], 'posts'))
-            .toBe('https://jsonplaceholder.typicode.com/users/posts/posts');
-    });
-
-    test('create with params', () => {
-        expect(fmtURL(_, ['users', 'posts'], 'posts', '?limit=10'))
-            .toBe('https://jsonplaceholder.typicode.com/users/posts/posts?limit=10');
-    });
-});
-
-describe('fmtBody function:', () => {
-    const _ = makeOrigin('jsonplaceholder.typicode.com');
-
-    test('create with empty body', () => {
-        expect(fmtBody(_, [], {})).toEqual({});
-    });
-
-    test('create with multiple body', () => {
-        expect(fmtBody(_, 
-            [], 
-            {
+    test('create with function', () => {
+        const _ = dereq('jsonplaceholder.typicode.com')
+            .root({
                 get: {
-                    posts: 'posts'
+                    todos: (count) => `todos/${count}`
+                }
+            });
+
+        expect(_.get.todos(1))
+            .toBe('https://jsonplaceholder.typicode.com/todos/1');
+    });
+
+    test('create with groups', () => {
+        const _ = dereq('10.16.0.140', 9001)
+            .group('list', {
+                get: {
+                    list: 'get-list',
+                    create: 'get-empty-list',
                 },
                 post: {
-                    posts: 'posts'
+                    save: 'save-list',
                 }
-            }
-        )).toEqual({
-            get: {
-                posts: 'https://jsonplaceholder.typicode.com/posts'
-            },
-            post: {
-                posts: 'https://jsonplaceholder.typicode.com/posts'
-            }
-        });
-    });
-
-    test('create with pathname', () => {
-        expect(fmtBody(_,
-            ['users'], 
-            {
+            })
+            .group('ports', {
                 get: {
-                    posts: 'posts'
+                    ports: (count) => `get-ports?count=${count}`,
                 }
-            }
-        )).toEqual({
-            get: {
-                posts: 'https://jsonplaceholder.typicode.com/users/posts'
-            }
-        });
-    });
-
-    test('create with multiple pathname', () => {
-        expect(fmtBody(_, 
-            ['users', 'posts'], 
-            {
+            })
+            .end();
+        expect(_).toEqual({
+            list: {
                 get: {
-                    posts: 'posts'
-                }
-            }
-        )).toEqual({
-            get: {
-                posts: 'https://jsonplaceholder.typicode.com/users/posts/posts'
-            }
-        });
-    });
-});
-
-describe('dereq function:', () => {
-
-    test('create with empty body', () => {
-        expect(dereq({
-            origin: makeOrigin('jsonplaceholder.typicode.com'),
-            endpoints: {}
-        })).toEqual({});
-    });
-
-    test('create with empty path', () => {
-        expect(dereq({
-            origin: makeOrigin('jsonplaceholder.typicode.com'),
-            endpoints: {
-                users: [
-                    [],
-                    {
-                        get: {
-                            posts: 'posts'
-                        }
-                    }
-                ]
-            }
-        })).toEqual({
-            users: {
-                get: {
-                    posts: 'https://jsonplaceholder.typicode.com/posts'
-                }
-            }
-        });
-    });
-
-    test('create with multiple path', () => {
-        expect(dereq({
-            origin: makeOrigin('jsonplaceholder.typicode.com'),
-            endpoints: {
-                users: [
-                    ['users', 'posts'],
-                    {
-                        get: {
-                            posts: 'posts'
-                        }
-                    }
-                ]
-            }
-        })).toEqual({
-            users: {
-                get: {
-                    posts: 'https://jsonplaceholder.typicode.com/users/posts/posts'
-                }
-            }
-        });
-    });
-
-    test('create with multiple endpoints', () => {
-        expect(dereq({
-            origin: makeOrigin('jsonplaceholder.typicode.com'),
-            endpoints: {
-                users: [
-                    ['users', 'posts'],
-                    {
-                        get: {
-                            posts: 'posts'
-                        }
-                    }
-                ],
-                posts: [
-                    ['posts'],
-                    {
-                        get: {
-                            comments: 'comments'
-                        }
-                    }
-                ]
-            }
-        })).toEqual({
-            users: {
-                get: {
-                    posts: 'https://jsonplaceholder.typicode.com/users/posts/posts'
+                    list: 'https://10.16.0.140:9001/list/get-list',
+                    create: 'https://10.16.0.140:9001/list/get-empty-list',
+                },
+                post: {
+                    save: 'https://10.16.0.140:9001/list/save-list',
                 }
             },
-            posts: {
+            ports: {
                 get: {
-                    comments: 'https://jsonplaceholder.typicode.com/posts/comments'
+                    ports: 'https://10.16.0.140:9001/ports/get-ports',
                 }
-            }
-        })
-    });
-
-    test('create with function and call', () => {
-        const _ = dereq({
-            origin: makeOrigin('jsonplaceholder.typicode.com'),
-            endpoints: {
-                users: [
-                    ['users'],
-                    {
-                        get: {
-                            posts: (count) => `posts/${count}`
-                        }
-                    }
-                ]
             }
         });
-
-        expect(_.users.get.posts(20))
-            .toBe('https://jsonplaceholder.typicode.com/users/posts/20');
-    });
-
-    test('create with params', () => {
-        expect(dereq({
-            origin: makeOrigin('jsonplaceholder.typicode.com'),
-            endpoints: {
-                users: [
-                    ['users'],
-                    {
-                        get: {
-                            posts: ['posts', '?limit=']
-                        }
-                    }
-                ]
-            }
-        })).toEqual({
-            users: {
-                get: {
-                    posts: 'https://jsonplaceholder.typicode.com/users/posts/?limit='
-                }
-            }
-        })
     });
 });

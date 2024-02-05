@@ -1,38 +1,86 @@
-export const makeOrigin = (ip, port = '', protocol = 'https') => 
-    ({ip, port: `${port}`, protocol});
+/**
+ * Takes the host, port, and protocol and returns the formatted URL.
+ *
+ * @param {string} host - the host name or IP address
+ * @param {number | string} port - the port number (optional)
+ * @param {string} protocol - the URL protocol (e.g. http, https)
+ * @return {string} the formatted URL
+ */
+const formatURL = (host, port, protocol) => {
+    return `${protocol}://${host}${port ? `:${port}` : ''}`;
+};
 
-export const fmtOrigin = ({ip, port, protocol}) => 
-    `${protocol}://${ip}${port ? `:${port}` : ''}`;
-
-export const fmtPathName = (pathname) =>
-    `${pathname.length !== 0 ? `/${pathname.join('/')}/` : '/'}`;
-
-export const fmtURL = (origin, pathname, request, params = '') =>
-    `${fmtOrigin(origin)}${fmtPathName(pathname)}${request}${params}`;
-
-export const fmtBody = (origin, pathname, body) => {
-    return Object.keys(body).reduce((acc, key) => {
-        const value = body[key];
+/**
+ * Transforms the routes object into a new object with modified URLs based on the provided URL and group.
+ *
+ * @param {string} url - The base URL for the routes
+ * @param {string} group - The group name for the routes
+ * @param {object} routes - The routes object to be transformed
+ * @return {object} The transformed routes object with modified URLs
+ */
+const transformRoutes = (url, group, routes) =>
+    Object.keys(routes).reduce((acc, key) => {
+        const value = routes[key];
 
         if(typeof value === 'string') {
-            acc[key] = fmtURL(origin, pathname, value);
-        } else if(Array.isArray(value)) {
-            acc[key] = fmtURL(origin, pathname, value.join('/'));
+            acc[key] = new URL(`${group}/${value}`, url).href;
         } else if(typeof value === 'function') {
-            acc[key] = (...params) => fmtURL(origin, pathname, value(...params));
+            acc[key] = (...params) => new URL(`${group}/${value(...params)}`, url).href;
         } else if(typeof value === 'object') {
-            acc[key] = fmtBody(origin, pathname, value);
+            acc[key] = transformRoutes(url, group, value);
         }
 
         return acc;
     }, {});
-};
 
-export const dereq = ({origin, endpoints}) => 
-    Object.fromEntries(
-        Object.entries(endpoints).map(([name, [path, requests]]) =>
-        [
-            name,
-            fmtBody(origin, path, requests)
-        ]
-));
+/**
+ * Function to create and manage API route groups.
+ *
+ * @param {string} host - the host of the API
+ * @param {string | number} [port=""] - the port of the API, defaults to an empty string
+ * @param {string} [protocol="https"] - the protocol of the API, defaults to "https"
+ * @return {object} an object containing the group function for creating route groups
+ */
+export const dereq = (host, port = '', protocol = 'https') => {
+    const baseURL = formatURL(host, port, protocol);
+    if(!URL.canParse(baseURL)) {
+        throw new TypeError('Invalid URL');
+    }
+
+    const requests = {};
+    return {
+        /**
+         * Method to group routes under a common name.
+         *
+         * @param {string} name - the name of the group
+         * @param {object} routes - the routes to be grouped
+         * @return {object} the current object instance
+         */
+        group(name, routes) {
+            if(name.length === 0) {
+                throw new TypeError('Group name cannot be an empty string');
+            }
+
+            requests[name] = transformRoutes(baseURL, name, routes);
+            return this;
+        },
+        /**
+         * Method to create empty routes.
+         *
+         * @param {object} routes - the routes to be created
+         * @return {object} the current object instance
+         */
+        root(routes) {
+            Object.assign(requests, transformRoutes(baseURL, '', routes));
+            return requests;
+        },
+        /**
+         * Method to signify the end of a process.
+         *
+         * @return {Object} The requests object.
+         */
+        end() {
+            return requests;
+        }
+    };
+};
