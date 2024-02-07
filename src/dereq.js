@@ -6,9 +6,8 @@
  * @param {string} protocol - the URL protocol (e.g. http, https)
  * @return {string} the formatted URL
  */
-const formatURL = (host, port, protocol) => {
-    return `${protocol}://${host}${port ? `:${port}` : ''}`;
-};
+const formatURL = (host, port, protocol) =>
+    `${protocol}://${host}${port ? `:${port}` : ''}`;
 
 /**
  * Transforms the routes object into a new object with modified URLs based on the provided URL and group.
