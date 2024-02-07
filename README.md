@@ -23,11 +23,11 @@ import { dereq } from 'dereq';
 export const requests = dereq('10.16.0.140', 9001)
     .group('list', {
         get: {
-            list: 'get-list',
-            create: 'get-empty-list'
+            all: 'get-all-lists',
         },
         post: {
             save: 'save-list',
+            create: 'get-empty-list'
         }
     })
     .group('ports', {
@@ -43,9 +43,9 @@ And send your requests to any place
 ```js
 import { requests } from 'requests';
 
-const createList = async () => {
+const showLists = async () => {
     try {
-        const response = await fetch(requests.list.get.create);
+        const response = await fetch(requests.list.get.all);
         const answer = await response.json();
         console.log(answer);
     } catch (error) {
@@ -58,10 +58,10 @@ const createList = async () => {
 import { requests } from 'requests';
 import axios from 'axios';
 
-const createList = async () => {
+const showLists = async () => {
     try {
-        const response = await axios.get(requests.list.get.create);
-        console.log(response);
+        const response = await axios.get(requests.list.get.all);
+        console.log(response.data);
     } catch (error) {
         console.error(error);
     }
