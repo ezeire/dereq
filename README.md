@@ -18,7 +18,7 @@ yarn add dereq
 Describe your request scheme
 
 ```js
-import { dereq } from 'dereq';
+import dereq from 'dereq';
 
 export const requests = dereq('10.16.0.140', 9001)
     .group('list', {

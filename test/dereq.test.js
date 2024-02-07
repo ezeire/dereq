@@ -1,4 +1,4 @@
-import { dereq } from '../src/dereq.js';
+import dereq from '../src/dereq.js';
 
 describe('dereq testing', () => { 
     test('create with valid host', () => {
@@ -40,7 +40,7 @@ describe('dereq testing', () => {
             })
             .group('ports', {
                 get: {
-                    ports: (count) => `get-ports?count=${count}`,
+                    ports: 'get-ports',
                 }
             })
             .end();

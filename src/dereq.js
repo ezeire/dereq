@@ -6,8 +6,9 @@
  * @param {string} protocol - the URL protocol (e.g. http, https)
  * @return {string} the formatted URL
  */
-const formatURL = (host, port, protocol) =>
-    `${protocol}://${host}${port ? `:${port}` : ''}`;
+function formatURL(host, port, protocol) {
+    return `${protocol}://${host}${port ? `:${port}` : ''}`;
+}
 
 /**
  * Transforms the routes object into a new object with modified URLs based on the provided URL and group.
@@ -17,8 +18,8 @@ const formatURL = (host, port, protocol) =>
  * @param {object} routes - The routes object to be transformed
  * @return {object} The transformed routes object with modified URLs
  */
-const transformRoutes = (url, group, routes) =>
-    Object.keys(routes).reduce((acc, key) => {
+function transformRoutes(url, group, routes) {
+    return Object.keys(routes).reduce((acc, key) => {
         const value = routes[key];
 
         if(typeof value === 'string') {
@@ -31,6 +32,7 @@ const transformRoutes = (url, group, routes) =>
 
         return acc;
     }, {});
+}
 
 /**
  * Function to create and manage API route groups.
@@ -40,7 +42,7 @@ const transformRoutes = (url, group, routes) =>
  * @param {string} [protocol="https"] - the protocol of the API, defaults to "https"
  * @return {object} an object containing the group function for creating route groups
  */
-export const dereq = (host, port = '', protocol = 'https') => {
+export default function dereq(host, port = '', protocol = 'https') {
     const baseURL = formatURL(host, port, protocol);
     if(!URL.canParse(baseURL)) {
         throw new TypeError('Invalid URL');
@@ -82,4 +84,4 @@ export const dereq = (host, port = '', protocol = 'https') => {
             return requests;
         }
     };
-};
+}
