@@ -44,9 +44,6 @@ function transformRoutes(url, group, routes) {
  */
 export default function dereq(host, port = '', protocol = 'https') {
     const baseURL = formatURL(host, port, protocol);
-    if(!URL.canParse(baseURL)) {
-        throw new TypeError('Invalid URL');
-    }
 
     const requests = {};
     return {
